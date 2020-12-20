@@ -1,6 +1,6 @@
 import { userTypes } from "../enums/index.js";
 import { getCashInConfig, getCashOutConfig } from "../api/config.js";
-import { getUniqueValues } from "../utils/index.js";
+import { getUniqueItems } from "../utils/index.js";
 
 const computeCommission = (percent, amount) => {
   return ((percent * amount) / 100).toFixed(2);
@@ -23,7 +23,7 @@ const getCashInCommissionFee = (data, config) => {
 };
 
 const getCashOutNaturalCommissionFee = (data, cashOutNaturalConfig) => {
-  const transactionWeekNos = getUniqueValues(data, "weekNo");
+  const transactionWeekNos = getUniqueItems(data, "weekNo");
   const { percents, week_limit } = cashOutNaturalConfig;
   const { amount: week_limit_amount } = week_limit;
 

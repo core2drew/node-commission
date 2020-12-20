@@ -1,6 +1,6 @@
 import moment from "moment";
 import { cashTypes } from "../enums/index.js";
-import { getUniqueValues } from "../utils/index.js";
+import { getUniqueItems } from "../utils/index.js";
 const addSortProp = (data) => {
   return data.map((d, index) => ({
     ...d,
@@ -24,7 +24,7 @@ const filterByCashType = (data, type) => {
 // value: cash-in/out array
 export const preparedTransactions = (data) => {
   // Return array of unique user ids
-  const userIds = getUniqueValues(data, "user_id");
+  const userIds = getUniqueItems(data, "user_id");
   const preparedData = addWeekNumber(addSortProp(data));
   return userIds.reduce((acc, cur) => {
     const userData = preparedData.filter((i) => i.user_id === cur);
