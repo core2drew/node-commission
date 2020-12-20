@@ -1,6 +1,6 @@
 import { readJSON } from "./utils/file.js";
 import { preparedTransactions } from "./services/transaction.js";
-import { computeCommissionFee } from "./services/commission.js";
+import { getCommissionFee } from "./services/commission.js";
 
 const start = async () => {
   if (process.argv.length < 3) {
@@ -9,7 +9,7 @@ const start = async () => {
   }
   const data = await readJSON(process.argv[2]);
   const transaction = preparedTransactions(data);
-  const commissionFees = await computeCommissionFee(transaction);
+  const commissionFees = await getCommissionFee(transaction);
   commissionFees.forEach((d) => {
     console.log(d);
   });

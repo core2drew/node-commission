@@ -2,7 +2,7 @@ import { userTypes } from "../enums/index.js";
 import { getCashInConfig, getCashOutConfig } from "../api/config.js";
 import { getUniqueItems } from "../utils/index.js";
 
-const computeCommission = (percent, amount) => {
+const computeCommissionFee = (percent, amount) => {
   return ((percent * amount) / 100).toFixed(2);
 };
 
@@ -12,7 +12,7 @@ const getCashInCommissionFee = (data, config) => {
   return data.map(({ operation, sort }) => {
     const { amount } = operation;
     const commissionFee = Math.min(
-      computeCommission(percents, amount),
+      computeCommissionFee(percents, amount),
       maxCommissionFee
     ).toFixed(2);
     return {
@@ -22,25 +22,28 @@ const getCashInCommissionFee = (data, config) => {
   });
 };
 
-const getCashOutNaturalCommissionFee = (data, cashOutNaturalConfig) => {
-  const transactionWeekNos = getUniqueItems(data, "weekNo");
-  const { percents, week_limit } = cashOutNaturalConfig;
+const getCashOutNaturalCommissionFee = (data, config) => {
+  // Get array of unique weeks
+  const transactionWeek = getUniqueItems(data, "week");
+  const { percents, week_limit } = config;
   const { amount: week_limit_amount } = week_limit;
 
-  return transactionWeekNos.reduce((acc, cur) => {
+  return transactionWeek.reduce((acc, cur) => {
     let totalCashOut = 0;
     let isExceeding = false;
-    const filteredWeek = data.filter((i) => i.weekNo === cur);
+
+    const filteredWeek = data.filter((i) => i.week === cur); // Filter data base on current week
+
     const commission = filteredWeek.map(({ sort, operation }) => {
       const { amount } = operation;
       totalCashOut += amount;
       if (!isExceeding) {
         isExceeding = totalCashOut > week_limit_amount;
         if (isExceeding) {
-          const amt = totalCashOut - week_limit_amount;
+          const exceedingAmount = totalCashOut - week_limit_amount;
           return {
             sort,
-            commissionFee: computeCommission(percents, amt),
+            commissionFee: computeCommissionFee(percents, exceedingAmount),
           };
         }
         return {
@@ -50,21 +53,21 @@ const getCashOutNaturalCommissionFee = (data, cashOutNaturalConfig) => {
       }
       return {
         sort,
-        commissionFee: computeCommission(percents, amount),
+        commissionFee: computeCommissionFee(percents, amount),
       };
     });
     return [...acc, ...commission];
   }, []);
 };
 
-const getCashOutJuridicalCommissionFee = (data, cashOutJuridicalConfig) => {
-  const { percents, min } = cashOutJuridicalConfig;
+const getCashOutJuridicalCommissionFee = (data, config) => {
+  const { percents, min } = config;
   const { amount: minAmount } = min;
 
   return data.map(({ sort, operation }) => {
     const { amount } = operation;
     const commissionFee = Math.max(
-      computeCommission(percents, amount),
+      computeCommissionFee(percents, amount),
       minAmount
     ).toFixed(2);
     return {
@@ -74,27 +77,25 @@ const getCashOutJuridicalCommissionFee = (data, cashOutJuridicalConfig) => {
   });
 };
 
-export const computeCommissionFee = async (data) => {
+export const getCommissionFee = async (data) => {
+  // Fetch configs
   const cashInConfig = await getCashInConfig();
   const cashOutNaturalConfig = await getCashOutConfig(userTypes.NATURAL);
   const cashOutJuridicalConfig = await getCashOutConfig(userTypes.JURIDICAL);
+  // Get data keys
+  const userIds = Object.keys(data);
 
-  const commissionFee = Object.keys(data).reduce((acc, cur) => {
+  const commissionFee = userIds.reduce((acc, cur) => {
     const { cashIn, cashOut } = data[cur];
-    const cashOutNaturalData = cashOut.filter(
-      ({ user_type }) => user_type === userTypes.NATURAL
-    );
-    const cashOutJuridicalData = cashOut.filter(
-      ({ user_type }) => user_type === userTypes.JURIDICAL
-    );
+    const { natural, juridical } = cashOut;
 
     const cashInCommissionFee = getCashInCommissionFee(cashIn, cashInConfig);
     const cashOutCommissionFeeNatural = getCashOutNaturalCommissionFee(
-      cashOutNaturalData,
+      natural,
       cashOutNaturalConfig
     );
     const cashOutCommissionFeeJuridical = getCashOutJuridicalCommissionFee(
-      cashOutJuridicalData,
+      juridical,
       cashOutJuridicalConfig
     );
 
@@ -105,7 +106,8 @@ export const computeCommissionFee = async (data) => {
       ...cashOutCommissionFeeJuridical,
     ];
   }, []);
-  const sorted = [...commissionFee].sort((a, b) => a.sort - b.sort);
+
+  const sorted = [...commissionFee].sort((a, b) => a.sort - b.sort); // Sort by commissionFee sort property
   return sorted.map((d) => {
     return d.commissionFee;
   });

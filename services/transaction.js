@@ -1,6 +1,10 @@
 import moment from "moment";
-import { cashTypes } from "../enums/index.js";
+import { cashTypes, userTypes } from "../enums/index.js";
 import { getUniqueItems } from "../utils/index.js";
+
+/* 
+  Add sort per transaction 
+*/
 const addSortProp = (data) => {
   return data.map((d, index) => ({
     ...d,
@@ -8,30 +12,54 @@ const addSortProp = (data) => {
   }));
 };
 
+/* 
+  Add week number per transaction 
+*/
 const addWeekNumber = (data) => {
   return data.map((d) => ({
     ...d,
-    weekNo: moment(d.date, "YYYY-MM-DD").isoWeek(),
+    week: moment(d.date, "YYYY-MM-DD").isoWeek(),
   }));
 };
 
-const filterByCashType = (data, type) => {
-  return data.filter((i) => i.type === type);
+/* 
+  Return object:
+  cashIn: Array,
+  cashOut: Object {
+    natural: Array
+    juridical:
+  },
+*/
+const prepareCashInCashOut = (data) => {
+  const cashIn = data.filter((i) => i.type === cashTypes.CASH_IN); // Filter by cash-in type
+  const cashOut = data.filter((i) => i.type === cashTypes.CASH_OUT); // Filter by cash-out type
+  const natural = cashOut.filter((i) => i.user_type === userTypes.NATURAL); // Filter Cash Out - Natural
+  const juridical = cashOut.filter((i) => i.user_type === userTypes.JURIDICAL); // Filter Cash Out - Juridical
+
+  return {
+    cashIn,
+    cashOut: {
+      natural,
+      juridical,
+    },
+  };
 };
 
-// Return object
-// key: user-id
-// value: cash-in/out array
+/* 
+  Return object:
+  key: userId
+  value: Object {
+    cashIn: Array,
+    cashOut: Array
+  }
+*/
 export const preparedTransactions = (data) => {
-  // Return array of unique user ids
-  const userIds = getUniqueItems(data, "user_id");
-  const preparedData = addWeekNumber(addSortProp(data));
+  const userIds = getUniqueItems(data, "user_id"); // Return array of unique user ids
+  const preparedTransactionData = addWeekNumber(addSortProp(data)); // data with additional props: week, sort
+
   return userIds.reduce((acc, cur) => {
-    const userData = preparedData.filter((i) => i.user_id === cur);
-    acc[cur] = {
-      cashIn: filterByCashType(userData, cashTypes.CASH_IN),
-      cashOut: filterByCashType(userData, cashTypes.CASH_OUT),
-    };
+    const userData = preparedTransactionData.filter((i) => i.user_id === cur);
+    acc[cur] = prepareCashInCashOut(userData);
     return acc;
   }, {});
 };
