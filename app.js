@@ -1,4 +1,5 @@
 import { readJSON } from "./utils/file.js";
+import { currencyCode } from "./enums/index.js";
 import { preparedTransactions } from "./services/transaction.js";
 import { getCommissionFee } from "./services/commission.js";
 
@@ -8,11 +9,18 @@ const start = async () => {
     return;
   }
   const data = await readJSON(process.argv[2]);
-  const transaction = preparedTransactions(data);
-  const commissionFees = await getCommissionFee(transaction);
-  commissionFees.forEach((d) => {
-    console.log(d);
-  });
+  try {
+    const transaction = preparedTransactions({
+      data,
+      filterCurrencyBy: currencyCode.EUR,
+    });
+    const commissionFees = await getCommissionFee(transaction);
+    commissionFees.forEach((d) => {
+      console.log(d);
+    });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 start();

@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha",
+    "test-transaction": "mocha test/transaction.test.js",
     "start": "node --experimental-modules index.js input.json"
   },
   "keywords": [],
@@ -14,5 +15,9 @@
   "dependencies": {
     "axios": "^0.21.0",
     "moment": "^2.29.1"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^8.2.1"
   }
 }

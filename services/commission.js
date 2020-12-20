@@ -6,7 +6,7 @@ const computeCommissionFee = (percent, amount) => {
   return ((percent * amount) / 100).toFixed(2);
 };
 
-const getCashInCommissionFee = (data, config) => {
+export const getCashInCommissionFee = (data, config) => {
   const { percents, max } = config;
   const { amount: maxCommissionFee } = max;
   return data.map(({ operation, sort }) => {
@@ -22,7 +22,7 @@ const getCashInCommissionFee = (data, config) => {
   });
 };
 
-const getCashOutNaturalCommissionFee = (data, config) => {
+export const getCashOutNaturalCommissionFee = (data, config) => {
   // Get array of unique weeks
   const transactionWeek = getUniqueItems(data, "week");
   const { percents, week_limit } = config;
@@ -60,7 +60,7 @@ const getCashOutNaturalCommissionFee = (data, config) => {
   }, []);
 };
 
-const getCashOutJuridicalCommissionFee = (data, config) => {
+export const getCashOutJuridicalCommissionFee = (data, config) => {
   const { percents, min } = config;
   const { amount: minAmount } = min;
 

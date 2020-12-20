@@ -23,7 +23,7 @@ const addWeekNumber = (data) => {
   }));
 };
 
-const filterSupportedCurrency = (data, currency) => {
+const filterByCurrency = (data, currency) => {
   return data.filter(({ operation }) => operation.currency === currency);
 };
 
@@ -60,16 +60,34 @@ const prepareCashInCashOut = (data) => {
     }
  */
 
-export const preparedTransactions = (data) => {
-  const userIds = getUniqueItems(data, "user_id"); // Return array of unique user ids
-  const preparedTransactionData = filterSupportedCurrency(
-    addWeekNumber(addSortProp(data)),
-    currencyCode.EUR
-  ); // data with additional props: week, sort and filter by EUR
+export const preparedTransactions = ({
+  data = [],
+  filterCurrencyBy = currencyCode.EUR,
+}) => {
+  if (!Array.isArray(data)) {
+    throw new Error("Data expect to be array.");
+  }
 
-  return userIds.reduce((acc, cur) => {
-    const userData = preparedTransactionData.filter((i) => i.user_id === cur);
-    acc[cur] = prepareCashInCashOut(userData);
-    return acc;
-  }, {});
+  if (!data.length) {
+    throw new Error("Data expect not empty array.");
+  }
+
+  // Return array of unique user ids
+  const userIds = getUniqueItems(data, "user_id");
+  if (!userIds.length) {
+    throw new Error("Data expect user_id property.");
+  }
+
+  // Prepare data and filter data by currency
+  const preparedTransactionData = filterByCurrency(
+    addWeekNumber(addSortProp(data)),
+    filterCurrencyBy
+  );
+  if (preparedTransactionData.length) {
+    return userIds.reduce((acc, cur) => {
+      const userData = preparedTransactionData.filter((i) => i.user_id === cur);
+      acc[cur] = prepareCashInCashOut(userData);
+      return acc;
+    }, {});
+  }
 };
