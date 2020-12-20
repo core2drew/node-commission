@@ -17,7 +17,7 @@ Compute commission fees on `input.json`
 ]
 ```
 
-Run to compute commission fees
+### Command to compute commission:
 ```
 node app.js input.json
 ```
@@ -33,4 +33,8 @@ Output:
 5.00
 0.00
 0.00
+```
+### Command to run test:
+```
+npm run test-transaction
 ```
