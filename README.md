@@ -37,4 +37,5 @@ Output:
 ### Command to run test:
 ```
 npm run test-transaction
+npm run test-commission
 ```
