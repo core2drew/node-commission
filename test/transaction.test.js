@@ -32,15 +32,6 @@ describe("#preparedTransactions()", function () {
     });
   });
 
-  context("passing non-array", function () {
-    it("should throw error", function () {
-      chai
-        .expect(() => {
-          preparedTransactions({ data: {} });
-        })
-        .to.throw(Error, "Data expect to be array.");
-    });
-  });
   context("passing empty array", function () {
     it("should throw error", function () {
       chai
@@ -50,6 +41,17 @@ describe("#preparedTransactions()", function () {
         .to.throw(Error, "Data expect not empty array.");
     });
   });
+
+  context("passing non-array", function () {
+    it("should throw error", function () {
+      chai
+        .expect(() => {
+          preparedTransactions({ data: {} });
+        })
+        .to.throw(Error, "Data expect to be array.");
+    });
+  });
+
   context("passing array object without user_id property", function () {
     it("should throw error", function () {
       chai

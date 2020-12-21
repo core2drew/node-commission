@@ -7,6 +7,7 @@
   "scripts": {
     "test": "mocha",
     "test-transaction": "mocha test/transaction.test.js",
+    "test-commission": "mocha test/commission.test.js",
     "start": "node --experimental-modules index.js input.json"
   },
   "keywords": [],
